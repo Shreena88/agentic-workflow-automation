@@ -60,4 +60,4 @@ The system features a dedicated **Visual Analysis Engine** that goes beyond simp
 4.  **Launch Dashboard**: Open `frontend/index.html` in your browser.
 
 ---
-*Powered by Grok & LangGraph*
+
