@@ -1,0 +1,901 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Agentic Workflow Automation</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #0f1117;
+      color: #e0e0e0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 32px 16px;
+    }
+
+    h1 {
+      font-size: 1.6rem;
+      font-weight: 600;
+      color: #a78bfa;
+      margin-bottom: 4px;
+    }
+
+    .subtitle {
+      font-size: 0.85rem;
+      color: #6b7280;
+      margin-bottom: 24px;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 4px;
+      background: #1a1d27;
+      border: 1px solid #2d2f3e;
+      border-radius: 10px;
+      padding: 4px;
+      margin-bottom: 20px;
+      width: 100%;
+      max-width: 860px;
+    }
+
+    .tab-btn {
+      flex: 1;
+      padding: 8px 10px;
+      background: transparent;
+      border: none;
+      color: #6b7280;
+      font-size: 0.85rem;
+      border-radius: 7px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .tab-btn.active {
+      background: #7c3aed;
+      color: #fff;
+    }
+
+    .tab-btn:hover:not(.active) {
+      background: #2d2f3e;
+      color: #e0e0e0;
+    }
+
+    .tab-panel {
+      display: none;
+      width: 100%;
+      max-width: 860px;
+    }
+
+    .tab-panel.active {
+      display: block;
+    }
+
+    .card {
+      background: #1a1d27;
+      border: 1px solid #2d2f3e;
+      border-radius: 12px;
+      padding: 22px;
+      margin-bottom: 16px;
+    }
+
+    .section-title {
+      font-size: 0.75rem;
+      color: #6b7280;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 12px;
+    }
+
+    label {
+      display: block;
+      font-size: 0.75rem;
+      color: #9ca3af;
+      margin-bottom: 5px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    textarea,
+    input[type="text"],
+    input[type="number"] {
+      width: 100%;
+      background: #0f1117;
+      border: 1px solid #2d2f3e;
+      border-radius: 8px;
+      color: #e0e0e0;
+      font-size: 0.9rem;
+      padding: 10px 12px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+
+    textarea:focus,
+    input:focus {
+      border-color: #7c3aed;
+    }
+
+    .row {
+      display: flex;
+      gap: 12px;
+      margin-top: 12px;
+      align-items: flex-end;
+    }
+
+    .field {
+      flex: 1;
+    }
+
+    button {
+      background: #7c3aed;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 20px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: background 0.2s;
+      white-space: nowrap;
+    }
+
+    button:hover {
+      background: #6d28d9;
+    }
+
+    button:disabled {
+      background: #3b3b5c;
+      cursor: not-allowed;
+    }
+
+    .status-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.78rem;
+      color: #6b7280;
+      margin-top: 10px;
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #22c55e;
+    }
+
+    .dot.error {
+      background: #ef4444;
+    }
+
+    .dot.loading {
+      background: #f59e0b;
+      animation: pulse 1s infinite;
+    }
+
+    @keyframes pulse {
+
+      0%,
+      100% {
+        opacity: 1
+      }
+
+      50% {
+        opacity: 0.3
+      }
+    }
+
+    .answer-box {
+      background: #0f1117;
+      border: 1px solid #2d2f3e;
+      border-radius: 8px;
+      padding: 16px;
+      font-size: 0.88rem;
+      line-height: 1.7;
+      white-space: pre-wrap;
+      word-break: break-word;
+      min-height: 60px;
+    }
+
+    .latency {
+      font-size: 0.73rem;
+      color: #6b7280;
+      margin-top: 6px;
+      text-align: right;
+    }
+
+    .tasks-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .task-item {
+      background: #0f1117;
+      border: 1px solid #2d2f3e;
+      border-radius: 8px;
+      padding: 10px 14px;
+    }
+
+    .task-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+
+    .badge {
+      font-size: 0.68rem;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .badge.search {
+      background: #1e3a5f;
+      color: #60a5fa;
+    }
+
+    .badge.summarize {
+      background: #1e3a2f;
+      color: #4ade80;
+    }
+
+    .badge.read_file {
+      background: #3a2a1e;
+      color: #fb923c;
+    }
+
+    .badge.analyze {
+      background: #2a1e3a;
+      color: #c084fc;
+    }
+
+    .badge.unknown {
+      background: #2d2f3e;
+      color: #9ca3af;
+    }
+
+    .task-id {
+      font-size: 0.73rem;
+      color: #6b7280;
+    }
+
+    .success-icon {
+      font-size: 0.8rem;
+      margin-left: auto;
+    }
+
+    .task-output {
+      font-size: 0.78rem;
+      color: #9ca3af;
+      white-space: pre-wrap;
+      word-break: break-word;
+      max-height: 100px;
+      overflow-y: auto;
+      border-top: 1px solid #2d2f3e;
+      padding-top: 6px;
+      margin-top: 4px;
+    }
+
+    .drop-zone {
+      border: 2px dashed #2d2f3e;
+      border-radius: 8px;
+      padding: 26px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+      color: #6b7280;
+      font-size: 0.86rem;
+    }
+
+    .drop-zone:hover,
+    .drop-zone.dragover {
+      border-color: #7c3aed;
+      background: #1a1030;
+      color: #a78bfa;
+    }
+
+    .drop-zone input[type="file"] {
+      display: none;
+    }
+
+    .file-list {
+      margin-top: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .file-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #0f1117;
+      border: 1px solid #2d2f3e;
+      border-radius: 6px;
+      padding: 7px 12px;
+      font-size: 0.8rem;
+    }
+
+    .fstatus.ok {
+      color: #4ade80;
+    }
+
+    .fstatus.err {
+      color: #f87171;
+    }
+
+    .fstatus.uploading {
+      color: #f59e0b;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .stat-box {
+      background: #0f1117;
+      border: 1px solid #2d2f3e;
+      border-radius: 8px;
+      padding: 12px;
+      text-align: center;
+    }
+
+    .stat-box .val {
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: #a78bfa;
+    }
+
+    .stat-box .lbl {
+      font-size: 0.7rem;
+      color: #6b7280;
+      margin-top: 2px;
+    }
+
+    .charts-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+      gap: 16px;
+      margin-top: 14px;
+    }
+
+    .chart-box {
+      background: #0f1117;
+      border: 1px solid #2d2f3e;
+      border-radius: 10px;
+      padding: 16px;
+    }
+
+    .chart-box h4 {
+      font-size: 0.8rem;
+      color: #9ca3af;
+      margin-bottom: 10px;
+    }
+
+    .chart-box canvas {
+      max-height: 240px;
+    }
+
+    .map-box {
+      height: 320px;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .insights-box {
+      background: #0f1117;
+      border: 1px solid #2d2f3e;
+      border-radius: 8px;
+      padding: 16px;
+      font-size: 0.86rem;
+      line-height: 1.75;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .col-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 6px;
+    }
+
+    .pill {
+      font-size: 0.7rem;
+      padding: 2px 10px;
+      border-radius: 999px;
+      border: 1px solid #2d2f3e;
+      color: #9ca3af;
+    }
+
+    .pill.num {
+      border-color: #7c3aed44;
+      color: #a78bfa;
+      background: #2a1e3a;
+    }
+
+    .pill.cat {
+      border-color: #1d4ed844;
+      color: #60a5fa;
+      background: #1e3a5f;
+    }
+
+    .attached-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #1e3a2f;
+      border: 1px solid #166534;
+      border-radius: 6px;
+      padding: 5px 10px;
+      font-size: 0.78rem;
+      color: #4ade80;
+      margin-top: 8px;
+    }
+
+    .attached-badge button {
+      background: none;
+      border: none;
+      color: #f87171;
+      cursor: pointer;
+      padding: 0 2px;
+      font-size: 0.8rem;
+    }
+
+    .error-msg {
+      color: #f87171;
+      font-size: 0.85rem;
+      padding: 10px;
+      background: #1f1010;
+      border: 1px solid #7f1d1d;
+      border-radius: 8px;
+      margin-top: 10px;
+    }
+
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+
+<body>
+
+  <h1>&#9889; Agentic Workflow Automation</h1>
+  <p class="subtitle">Powered by Grok &middot; LangGraph &middot; FAISS &middot; FastAPI</p>
+
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('agent',this)">&#129302; Agent</button>
+    <button class="tab-btn" onclick="switchTab('csv',this)">&#128202; CSV Analysis</button>
+  </div>
+
+  <!-- AGENT TAB -->
+  <div class="tab-panel active" id="tab-agent">
+    <div class="card">
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px;">
+        <button style="background: #7c3aed; font-weight: 600; padding: 12px; font-size: 0.85rem;"
+          onclick="getMemoryInfo()">🧠 Memory</button>
+        <button style="background: #dc2626; font-weight: 600; padding: 12px; font-size: 0.85rem;"
+          onclick="confirmClearMemory()">🗑️ Clear Memory</button>
+      </div>
+
+      <p class="section-title">Context Upload</p>
+      <div class="drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()"
+        style="padding: 16px; margin-bottom: 12px; font-size: 0.8rem;">
+        <input type="file" id="fileInput" multiple accept=".pdf,.txt,.md,.csv,.xlsx,.xls,.json"
+          onchange="onFilesSelected(this.files)" />
+        &#128194; Drag &amp; drop context files here, or click to browse<br>
+        <span style="font-size:0.7rem;color:#4b5563">PDF &middot; TXT &middot; CSV &middot; XLSX &middot; MD &middot;
+          JSON</span>
+      </div>
+      <div class="file-list" id="fileList"></div>
+      <div style="display: flex; gap: 10px; margin-top: 10px; margin-bottom: 20px;">
+        <button id="uploadBtn" onclick="uploadFiles()" disabled
+          style="flex:1; background:#4f46e5; height:36px; padding:0; font-size:0.8rem;">Upload & Attach</button>
+        <button id="useInAgentBtn" onclick="useInAgent()" disabled
+          style="flex:1; background:#16a34a; height:36px; padding:0; font-size:0.8rem;">Ready Agent ↑</button>
+      </div>
+
+      <div style="border-top: 1px dashed #2d2f3e; padding-top: 20px;">
+        <label
+          style="font-weight: 700; color: #a78bfa; font-size: 0.8rem; letter-spacing: 0.05em; margin-bottom: 10px;">AGENT
+          ABOUT IT</label>
+        <textarea id="query" placeholder="e.g. Summarize the attached report and look for trends..."></textarea>
+        <div id="attachedBadge" class="attached-badge hidden">
+          <span>&#128206;</span><span id="attachedName"></span>
+          <button onclick="detachFile()" title="Remove">&#10005;</button>
+        </div>
+        <div class="row">
+          <div class="field"><label>Session ID</label><input type="text" id="session_id" /></div>
+          <div class="field" style="max-width:120px"><label>Max Tasks</label><input type="number" id="max_tasks"
+              value="5" min="1" max="10" /></div>
+          <button id="runBtn" onclick="runAgent()">Run Agent</button>
+        </div>
+      </div>
+      <div class="status-bar">
+        <div class="dot" id="statusDot"></div><span id="statusText">Ready</span>
+      </div>
+    </div>
+    <div class="card hidden" id="answerCard">
+      <p class="section-title">Final Answer</p>
+      <div class="answer-box" id="answerBox"></div>
+      <div class="latency" id="latency"></div>
+    </div>
+    <div class="card hidden" id="agentChartsCard">
+      <p class="section-title">Dataset Charts</p>
+      <div class="stats-grid" id="agentStatsGrid"></div>
+      <div class="charts-grid" id="agentChartsGrid"></div>
+    </div>
+    <div class="card hidden" id="tasksCard">
+      <p class="section-title">Tasks Executed</p>
+      <div class="tasks-list" id="tasksList"></div>
+    </div>
+    <div class="error-msg hidden" id="errorBox"></div>
+  </div>
+
+  <!-- CSV ANALYSIS TAB -->
+  <div class="tab-panel" id="tab-csv">
+    <div class="card">
+      <p class="section-title">Upload CSV or Excel for Instant Analysis</p>
+      <div class="drop-zone" id="csvDropZone" onclick="document.getElementById('csvInput').click()">
+        <input type="file" id="csvInput" accept=".csv,.xlsx,.xls" onchange="onCsvSelected(this.files)" />
+        &#128202; Drop a CSV or Excel file here, or click to browse
+      </div>
+      <div id="csvFileName" style="font-size:0.8rem;color:#6b7280;margin-top:8px;"></div>
+      <button style="margin-top:12px" id="analyzeBtn" onclick="analyzeCSV()" disabled>Analyze Dataset</button>
+      <div class="status-bar">
+        <div class="dot" id="csvDot"></div><span id="csvStatus">Ready</span>
+      </div>
+    </div>
+    <div class="card hidden" id="csvSummaryCard">
+      <p class="section-title">Dataset Overview</p>
+      <div class="stats-grid" id="statsGrid"></div>
+      <div style="margin-top:10px">
+        <p style="font-size:0.75rem;color:#6b7280;margin-bottom:6px">NUMERIC COLUMNS</p>
+        <div class="col-pills" id="numCols"></div>
+      </div>
+      <div style="margin-top:10px">
+        <p style="font-size:0.75rem;color:#6b7280;margin-bottom:6px">CATEGORICAL COLUMNS</p>
+        <div class="col-pills" id="catCols"></div>
+      </div>
+    </div>
+    <div class="card hidden" id="csvChartsCard">
+      <p class="section-title">Charts</p>
+      <div class="charts-grid" id="chartsGrid"></div>
+    </div>
+    <div class="card hidden" id="csvInsightsCard">
+      <p class="section-title">AI Insights</p>
+      <div class="insights-box" id="insightsBox"></div>
+    </div>
+    <div class="error-msg hidden" id="csvErrorBox"></div>
+  </div>
+
+  <script>
+    const API_BASE = "http://127.0.0.1:8000";
+    const agentCharts = {}, csvCharts = {};
+
+    async function getMemoryInfo() {
+      const sid = document.getElementById('session_id').value.trim();
+      if (!sid) { alert("Please enter a Session ID first."); return; }
+      try {
+        const res = await fetch(`${API_BASE}/memory/${sid}`);
+        const data = await res.json();
+        alert(`Session Memory: ${data.count} context items currently stored.`);
+      } catch (err) { alert('Failed to fetch memory info.'); }
+    }
+
+    async function confirmClearMemory() {
+      const sid = document.getElementById('session_id').value.trim();
+      if (!sid) return;
+      if (!confirm(`Are you sure you want to clear the agent's memory for session ${sid}?`)) return;
+      try {
+        const res = await fetch(`${API_BASE}/memory/${sid}`, { method: 'DELETE' });
+        const data = await res.json();
+        if (data.cleared) {
+          alert("Memory wiped. The agent has fresh context now.");
+          detachFile();
+        }
+      } catch (err) { alert('Failed to clear memory.'); }
+    }
+
+    function uuid() {
+      return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+        const r = Math.random() * 16 | 0; return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+      });
+    }
+    const stored = localStorage.getItem('session_id') || uuid();
+    localStorage.setItem('session_id', stored);
+    document.getElementById('session_id').value = stored;
+
+    function show(id) { document.getElementById(id).classList.remove('hidden'); }
+    function hide(id) { document.getElementById(id).classList.add('hidden'); }
+
+    function switchTab(name, btn) {
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById('tab-' + name).classList.add('active');
+      btn.classList.add('active');
+    }
+
+    // ===================== AGENT TAB =====================
+    let attachedFile = null;
+
+    function detachFile() {
+      attachedFile = null;
+      hide('attachedBadge');
+      document.getElementById('attachedName').textContent = '';
+    }
+
+    function setStatus(state, text) {
+      document.getElementById('statusDot').className = 'dot' + (state === 'error' ? ' error' : state === 'loading' ? ' loading' : '');
+      document.getElementById('statusText').textContent = text;
+    }
+
+    async function runAgent() {
+      const query = document.getElementById('query').value.trim();
+      if (!query) { alert('Please enter a query.'); return; }
+      const session_id = document.getElementById('session_id').value.trim() || uuid();
+      const max_tasks = parseInt(document.getElementById('max_tasks').value) || 5;
+
+      hide('answerCard'); hide('tasksCard'); hide('errorBox'); hide('agentChartsCard');
+      setStatus('loading', 'Running agent...');
+      document.getElementById('runBtn').disabled = true;
+
+      let csvPromise = null;
+      if (attachedFile && /\.(csv|xlsx|xls)$/i.test(attachedFile.name)) {
+        const fd = new FormData(); fd.append('file', attachedFile);
+        csvPromise = fetch(API_BASE + '/analyze-csv', { method: 'POST', body: fd }).then(r => r.json());
+      }
+
+      try {
+        const res = await fetch(API_BASE + '/run-agent', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ query, session_id, max_tasks })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || 'HTTP ' + res.status);
+
+        document.getElementById('answerBox').textContent = data.answer;
+        document.getElementById('latency').textContent = 'Latency: ' + data.latency_ms.toFixed(0) + ' ms';
+        show('answerCard');
+
+        const list = document.getElementById('tasksList');
+        list.innerHTML = '';
+        (data.tasks_executed || []).forEach(t => {
+          const tc = ['search', 'summarize', 'read_file', 'analyze'].includes(t.tool) ? t.tool : 'unknown';
+          list.innerHTML += '<div class="task-item"><div class="task-header">'
+            + '<span class="badge ' + tc + '">' + t.tool + '</span>'
+            + '<span class="task-id">' + t.task_id + '</span>'
+            + '<span class="success-icon">' + (t.success ? '&#9989;' : '&#10060;') + '</span>'
+            + '</div><div class="task-output">' + (t.error ? '&#9888; ' + t.error : t.output) + '</div></div>';
+        });
+        show('tasksCard');
+        setStatus('', 'Done · Session: ' + data.session_id);
+
+        if (csvPromise) {
+          const csv = await csvPromise;
+          if (csv && csv.charts) renderAgentCharts(csv.summary, csv.charts);
+        }
+      } catch (err) {
+        document.getElementById('errorBox').textContent = '&#10060; ' + err.message;
+        show('errorBox'); setStatus('error', 'Failed');
+      } finally {
+        document.getElementById('runBtn').disabled = false;
+      }
+    }
+
+    function renderAgentCharts(s, charts) {
+      document.getElementById('agentStatsGrid').innerHTML =
+        '<div class="stat-box"><div class="val">' + s.rows.toLocaleString() + '</div><div class="lbl">Rows</div></div>'
+        + '<div class="stat-box"><div class="val">' + s.columns + '</div><div class="lbl">Columns</div></div>'
+        + '<div class="stat-box"><div class="val">' + s.numeric_columns.length + '</div><div class="lbl">Numeric</div></div>'
+        + '<div class="stat-box"><div class="val">' + s.categorical_columns.length + '</div><div class="lbl">Categorical</div></div>'
+        + '<div class="stat-box"><div class="val">' + Object.values(s.missing_values).reduce((a, b) => a + b, 0) + '</div><div class="lbl">Missing</div></div>';
+
+      Object.values(agentCharts).forEach(c => c.destroy());
+      Object.keys(agentCharts).forEach(k => delete agentCharts[k]);
+      const grid = document.getElementById('agentChartsGrid'); grid.innerHTML = '';
+      charts.forEach(cfg => {
+        if (cfg.type === 'geo') {
+          renderGeoMap(grid, 'agent-map', cfg);
+          return;
+        }
+        const d = document.createElement('div'); d.className = 'chart-box';
+        d.innerHTML = '<h4>' + cfg.title + '</h4><canvas id="ac-' + cfg.id + '"></canvas>';
+        grid.appendChild(d);
+        agentCharts[cfg.id] = new Chart(document.getElementById('ac-' + cfg.id).getContext('2d'), {
+          type: cfg.type, data: { labels: cfg.labels, datasets: cfg.datasets },
+          options: {
+            responsive: true, plugins: { legend: { labels: { color: '#9ca3af', font: { size: 11 } } } },
+            scales: cfg.type !== 'pie' ? { x: { ticks: { color: '#6b7280' }, grid: { color: '#2d2f3e' } }, y: { ticks: { color: '#6b7280' }, grid: { color: '#2d2f3e' } } } : {}
+          }
+        });
+      });
+      show('agentChartsCard');
+    }
+
+    document.getElementById('query').addEventListener('keydown', e => {
+      if (e.ctrlKey && e.key === 'Enter') runAgent();
+    });
+
+    // ===================== INTEGRATED UPLOAD LOGIC =====================
+    let selectedFiles = [];
+
+    const dropZone = document.getElementById('dropZone');
+    dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+    dropZone.addEventListener('drop', e => { e.preventDefault(); dropZone.classList.remove('dragover'); onFilesSelected(e.dataTransfer.files); });
+
+    function onFilesSelected(files) {
+      selectedFiles = Array.from(files);
+      const list = document.getElementById('fileList'); list.innerHTML = '';
+      selectedFiles.forEach(f => {
+        list.innerHTML += '<div class="file-item"><span>&#128196; ' + f.name + '</span>'
+          + '<span class="fstatus" id="fstatus-' + CSS.escape(f.name) + '">Ready</span></div>';
+      });
+      document.getElementById('uploadBtn').disabled = false;
+      document.getElementById('useInAgentBtn').disabled = false;
+    }
+
+    async function uploadFiles() {
+      if (!selectedFiles.length) return;
+      document.getElementById('uploadBtn').disabled = true;
+      for (const file of selectedFiles) {
+        const el = document.getElementById('fstatus-' + CSS.escape(file.name));
+        el.textContent = 'Uploading...'; el.className = 'fstatus uploading';
+        const fd = new FormData(); fd.append('file', file);
+        try {
+          const res = await fetch(API_BASE + '/upload-file', { method: 'POST', body: fd });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.detail || 'HTTP ' + res.status);
+          el.textContent = '&#10003; ' + data.saved_path; el.className = 'fstatus ok';
+        } catch (err) { el.textContent = '&#10007; ' + err.message; el.className = 'fstatus err'; }
+      }
+      document.getElementById('uploadBtn').disabled = false;
+    }
+
+    function useInAgent() {
+      if (!selectedFiles.length) return;
+      const file = selectedFiles[0];
+      attachedFile = file;
+      document.getElementById('attachedName').textContent = file.name;
+      show('attachedBadge');
+      const isCsv = /\.(csv|xlsx|xls)$/i.test(file.name);
+      document.getElementById('query').value = isCsv
+        ? 'Analyze the dataset ' + file.name + ' — provide key insights, trends, and patterns'
+        : 'Read and summarize the file ' + file.name;
+    }
+
+    // ===================== CSV ANALYSIS TAB =====================
+    let csvFile = null;
+
+    const csvDrop = document.getElementById('csvDropZone');
+    csvDrop.addEventListener('dragover', e => { e.preventDefault(); csvDrop.classList.add('dragover'); });
+    csvDrop.addEventListener('dragleave', () => csvDrop.classList.remove('dragover'));
+    csvDrop.addEventListener('drop', e => { e.preventDefault(); csvDrop.classList.remove('dragover'); onCsvSelected(e.dataTransfer.files); });
+
+    function onCsvSelected(files) {
+      if (!files.length) return;
+      csvFile = files[0];
+      document.getElementById('csvFileName').textContent = 'Selected: ' + csvFile.name + ' (' + (csvFile.size / 1024).toFixed(1) + ' KB)';
+      document.getElementById('analyzeBtn').disabled = false;
+    }
+
+    function setCsvStatus(state, text) {
+      document.getElementById('csvDot').className = 'dot' + (state === 'error' ? ' error' : state === 'loading' ? ' loading' : '');
+      document.getElementById('csvStatus').textContent = text;
+    }
+
+    async function analyzeCSV() {
+      if (!csvFile) return;
+      hide('csvSummaryCard'); hide('csvChartsCard'); hide('csvInsightsCard'); hide('csvErrorBox');
+      setCsvStatus('loading', 'Analyzing dataset...');
+      document.getElementById('analyzeBtn').disabled = true;
+      const fd = new FormData(); fd.append('file', csvFile);
+      try {
+        const res = await fetch(API_BASE + '/analyze-csv', { method: 'POST', body: fd });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || 'HTTP ' + res.status);
+        renderCsvSummary(data.summary);
+        renderCsvCharts(data.charts);
+        document.getElementById('insightsBox').textContent = data.insights;
+        show('csvInsightsCard');
+        setCsvStatus('', 'Done · ' + data.summary.rows + ' rows, ' + data.summary.columns + ' columns');
+      } catch (err) {
+        document.getElementById('csvErrorBox').textContent = '&#10060; ' + err.message;
+        show('csvErrorBox'); setCsvStatus('error', 'Failed');
+      } finally { document.getElementById('analyzeBtn').disabled = false; }
+    }
+
+    function renderCsvSummary(s) {
+      document.getElementById('statsGrid').innerHTML =
+        '<div class="stat-box"><div class="val">' + s.rows.toLocaleString() + '</div><div class="lbl">Rows</div></div>'
+        + '<div class="stat-box"><div class="val">' + s.columns + '</div><div class="lbl">Columns</div></div>'
+        + '<div class="stat-box"><div class="val">' + s.numeric_columns.length + '</div><div class="lbl">Numeric Cols</div></div>'
+        + '<div class="stat-box"><div class="val">' + s.categorical_columns.length + '</div><div class="lbl">Categorical Cols</div></div>'
+        + '<div class="stat-box"><div class="val">' + Object.values(s.missing_values).reduce((a, b) => a + b, 0) + '</div><div class="lbl">Missing Values</div></div>';
+      document.getElementById('numCols').innerHTML = s.numeric_columns.map(c => '<span class="pill num">' + c + '</span>').join('') || '<span style="color:#6b7280;font-size:0.78rem">none</span>';
+      document.getElementById('catCols').innerHTML = s.categorical_columns.map(c => '<span class="pill cat">' + c + '</span>').join('') || '<span style="color:#6b7280;font-size:0.78rem">none</span>';
+      show('csvSummaryCard');
+    }
+
+    function renderCsvCharts(charts) {
+      Object.values(csvCharts).forEach(c => c.destroy());
+      Object.keys(csvCharts).forEach(k => delete csvCharts[k]);
+      const grid = document.getElementById('chartsGrid'); grid.innerHTML = '';
+      charts.forEach(cfg => {
+        if (cfg.type === 'geo') {
+          renderGeoMap(grid, 'csv-map', cfg);
+          return;
+        }
+        const d = document.createElement('div'); d.className = 'chart-box';
+        d.innerHTML = '<h4>' + cfg.title + '</h4><canvas id="cc-' + cfg.id + '"></canvas>';
+        grid.appendChild(d);
+        csvCharts[cfg.id] = new Chart(document.getElementById('cc-' + cfg.id).getContext('2d'), {
+          type: cfg.type, data: { labels: cfg.labels, datasets: cfg.datasets },
+          options: {
+            responsive: true, plugins: { legend: { labels: { color: '#9ca3af', font: { size: 11 } } } },
+            scales: cfg.type !== 'pie' ? { x: { ticks: { color: '#6b7280' }, grid: { color: '#2d2f3e' } }, y: { ticks: { color: '#6b7280' }, grid: { color: '#2d2f3e' } } } : {}
+          }
+        });
+      });
+      show('csvChartsCard');
+    }
+
+    const leafletMaps = {};
+    function renderGeoMap(grid, mapId, cfg) {
+      const geo = cfg.geo;
+      const wrapper = document.createElement('div');
+      wrapper.className = 'chart-box';
+      wrapper.style.gridColumn = '1 / -1';
+      wrapper.innerHTML = '<h4>' + cfg.title + '</h4><div id="' + mapId + '" class="map-box"></div>';
+      grid.appendChild(wrapper);
+      if (leafletMaps[mapId]) { leafletMaps[mapId].remove(); delete leafletMaps[mapId]; }
+      setTimeout(() => {
+        const map = L.map(mapId, { zoomControl: true }).setView([20, 0], 2);
+        leafletMaps[mapId] = map;
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap contributors', maxZoom: 18 }).addTo(map);
+        if (geo.type === 'latlon') {
+          const maxVal = Math.max(...geo.points.map(p => p.value || 1), 1);
+          geo.points.forEach(p => {
+            const radius = Math.max(4, Math.min(20, (p.value / maxVal) * 20));
+            L.circleMarker([p.lat, p.lon], { radius, fillColor: '#a78bfa', color: '#7c3aed', weight: 1, fillOpacity: 0.75 }).bindPopup('<b>' + (p.label || 'Point') + '</b><br>Lat: ' + p.lat + '<br>Lon: ' + p.lon + (p.value ? '<br>Value: ' + p.value : '')).addTo(map);
+          });
+          if (geo.points.length > 0) { const bounds = geo.points.map(p => [p.lat, p.lon]); map.fitBounds(bounds, { padding: [20, 20] }); }
+        } else if (geo.type === 'country') {
+          const legend = L.control({ position: 'bottomright' });
+          legend.onAdd = () => {
+            const div = L.DomUtil.create('div'); div.style.cssText = 'background:#1a1d27;padding:10px;border-radius:8px;color:#e0e0e0;font-size:12px;max-height:200px;overflow-y:auto';
+            div.innerHTML = '<b style="color:#a78bfa">' + geo.geo_col + ' counts</b><br>' + geo.points.slice(0, 15).map(p => '<span style="color:#60a5fa">' + p.name + '</span>: ' + p.count).join('<br>');
+            return div;
+          };
+          legend.addTo(map);
+        }
+      }, 100);
+    }
+  </script>
+</body>
+
+</html>
