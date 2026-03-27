@@ -10,41 +10,6 @@ An advanced, production-grade AI system using **Grok LLM**, **LangGraph**, and *
 
 The architecture follows a high-performance, asynchronous pipeline built for scalability and data intelligence.
 
-```mermaid
-graph TD
-    User([User / HTTP Client]) --> FastAPI[FastAPI Layer<br/><i>Input Validation & Error Handling</i>]
-    
-    FastAPI --> Memory[FAISS Memory<br/><i>Retrieve Context</i>]
-    FastAPI --> Planner[Grok Planner<br/><i>Generate Task List</i>]
-    
-    Memory --> Engine
-    Planner --> Engine
-    
-    subgraph Engine [LangGraph Execution Engine]
-        Flow[Retrieve ➔ Plan ➔ Execute ➔ Respond]
-        
-        subgraph Tools [Tool Routing & Execution]
-            Search[Search Tool<br/><i>DDG</i>]
-            Summ[Summarize<br/><i>Grok API</i>]
-            FileR[File Reader<br/><i>PDF / TXT</i>]
-            DataA[Visual Analyzer<br/><i>pandas / Charts</i>]
-        end
-        
-        Flow --- Tools
-    end
-    
-    Engine --> Responder[Grok Responder<br/><i>Synthesize Final Answer</i>]
-    Responder --> Final[Final Answer Box<br/><i>Complete Response</i>]
-    Final --> JSON([JSON Response to User])
-
-    style Engine fill:#f9f9f9,stroke:#333,stroke-width:2px,stroke-dasharray: 5 5
-    style Tools fill:#e1f5fe,stroke:#01579b
-    style User fill:#fff,stroke:#333
-    style JSON fill:#fff,stroke:#333
-```
-
----
-
 ## 📂 Project Directory & File Mapping
 
 | Category | File | Description |
