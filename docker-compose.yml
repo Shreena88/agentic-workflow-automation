@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: agentic_backend
+    restart: always
+    ports:
+      - "8000:8000"
+    volumes:
+      - backend_data:/app/data
+      - backend_memory:/app/memory
+    env_file:
+      - ./backend/.env
+    environment:
+      - MEMORY_PERSIST_DIR=/app/memory
+      - ALLOWED_FILE_DIRS=/app/data
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        - VITE_API_BASE_URL=/api
+    container_name: agentic_frontend
+    restart: always
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+
+volumes:
+  backend_data:
+  backend_memory:
