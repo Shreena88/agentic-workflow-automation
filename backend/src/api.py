@@ -100,10 +100,11 @@ async def run_agent(request: Request, agent_request: AgentRequest = Body(...)) -
         raise HTTPException(status_code=503, detail="Engine not initialized.")
 
     start = time.perf_counter()
+    session_id = agent_request.session_id or str(uuid4())
     try:
         result = _engine.run(
             query=agent_request.query,
-            session_id=agent_request.session_id,
+            session_id=session_id,
             max_tasks=agent_request.max_tasks,
         )
     except ValueError as exc:

@@ -58,7 +58,19 @@ export const AgentTab: React.FC = () => {
       setStatus('success');
     } catch (err: any) {
       console.error(err);
-      setErrorMsg(err.response?.data?.detail || err.message || 'Agent run failed');
+      let msg = 'Agent run failed';
+      if (err.response?.data?.detail) {
+        if (typeof err.response.data.detail === 'string') {
+          msg = err.response.data.detail;
+        } else if (Array.isArray(err.response.data.detail)) {
+          msg = err.response.data.detail.map((d: any) => `${d.loc.join('.')}: ${d.msg}`).join(', ');
+        } else {
+          msg = JSON.stringify(err.response.data.detail);
+        }
+      } else if (err.message) {
+        msg = err.message;
+      }
+      setErrorMsg(msg);
       setStatus('error');
     }
   };

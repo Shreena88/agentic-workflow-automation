@@ -23,7 +23,7 @@ class ToolResult(BaseModel):
 
 class AgentRequest(BaseModel):
     query: str = Field(..., min_length=1, max_length=2000)
-    session_id: str = Field(default_factory=lambda: str(uuid4()))
+    session_id: str | None = Field(default=None)
     max_tasks: int = Field(default=5, ge=1, le=10)
 
 
