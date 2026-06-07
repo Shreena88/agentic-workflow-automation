@@ -1,0 +1,56 @@
+# --- Python Specific ---
+__pycache__/
+backend/__pycache__/
+*.py[cod]
+*$py.class
+.env
+backend/.env
+.venv
+backend/.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# --- IDEs ---
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# --- Project Specific Data & Memory ---
+# Ignore all content in data/ and memory/ but keep the folders
+backend/data/*
+backend/memory/*
+
+# Except for gitignore if needed (optional)
+!backend/data/.gitkeep
+!backend/memory/.gitkeep
+
+# Other OS junk
+.DS_Store
+Thumbs.db
+ehthumbs.db
+desktop.ini
+$RECYCLE.BIN/
+
+# --- Node / Frontend ---
+node_modules/
+frontend/node_modules/
+frontend/dist/
+frontend/dist-ssr/
+frontend/*.local
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# --- Python Tools & Caches ---
+.pytest_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+.ipynb_checkpoints/
+.hypothesis/
