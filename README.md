@@ -6,7 +6,7 @@ An advanced, production-grade AI system using **Grok LLM**, **LangGraph**, and *
 
 ## 🏛️ System Architecture
 
-![Workflow Architecture](./workflow.png)
+![Workflow Architecture]
 
 The architecture follows a high-performance, asynchronous pipeline built for scalability and data intelligence.
 
