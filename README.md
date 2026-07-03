@@ -10,6 +10,32 @@ An advanced, production-grade AI system using **Grok LLM**, **LangGraph**, and *
 
 The architecture follows a high-performance, asynchronous pipeline built for scalability and data intelligence.
 
+---
+
+## 🖥️ Dashboard User Interface
+
+The application features a dark-themed, glassmorphic dashboard with two primary workspaces:
+
+### 1. Agent Console
+The Agent Console offers a workspace to perform document QA, run web search objectives, and inspect step-by-step agent traces.
+
+![Agent Console Dashboard](./images/image.png)
+
+*   **Context Dropzone**: Index text files, PDFs, or JSON data dynamically into the active session memory.
+*   **Memory State & Clear**: Query index counts or reset the FAISS memory cache.
+*   **Task Pipeline**: Explains tool steps, runtime status, and inputs/outputs.
+
+### 2. CSV & Spreadsheet Profiler
+The CSV Analytics tab automatically parses and profiles tabular data formats.
+
+![CSV Analytics Suite](./images/image%20copy.png)
+
+*   **Dataset Overview**: Instantly count rows, columns, and categorise column data types.
+*   **Missing Value Grid**: Inspect cleanliness and missing values counts per field.
+*   **AI Interpretation & Charts**: Generate statistical correlations, Line/Bar charts, and map plots coupled with an AI synthesized report.
+
+---
+
 ## 📂 Project Directory & File Mapping
 
 | Category | File | Description |

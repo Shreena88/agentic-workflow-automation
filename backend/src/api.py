@@ -21,6 +21,7 @@ from src.memory import FAISSMemoryStore
 from src.engine import ExecutionEngine
 import src.tools.summarize as summarize_module
 from src.tools.visual_analyzer import VisualAnalyzer
+from src.tools.file_reader import file_reader_tool
 
 # Rebuild models for Pydantic v2 safety
 AgentRequest.model_rebuild()
@@ -192,6 +193,30 @@ async def upload_file(file: UploadFile = File(...), session_id: str | None = For
     # Store the fact that this file was uploaded in the session memory
     if _memory:
         _memory.store(current_session, f"Uploaded file: {file.filename}")
+        
+        # Proactively parse, chunk, and index the document content into FAISS memory (RAG)
+        try:
+            # Only read text-based and PDF formats (exclude spreadsheet binary files)
+            if suffix in {".pdf", ".txt", ".md", ".json"}:
+                text_content = file_reader_tool(save_path, current_session)
+                if text_content and text_content.strip():
+                    chunk_size = 1000
+                    overlap = 200
+                    chunks = []
+                    # Simple window overlap chunker
+                    for i in range(0, len(text_content), chunk_size - overlap):
+                        chunk = text_content[i : i + chunk_size].strip()
+                        if chunk:
+                            chunks.append(chunk)
+                    
+                    logger.info("Auto-indexing %d chunks from %s into FAISS", len(chunks), file.filename)
+                    for idx, chunk in enumerate(chunks):
+                        _memory.store(
+                            current_session,
+                            f"Document Content from {file.filename} (Chunk {idx+1}/{len(chunks)}):\n{chunk}"
+                        )
+        except Exception as e:
+            logger.error("Failed to auto-index file content for %s: %s", file.filename, e)
 
     return {
         "filename": file.filename,
